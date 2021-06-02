@@ -1,0 +1,20 @@
+{% extends "base.html" %} 
+{% block content %}
+    <main role="main" class="container">
+        <div class="row">
+        <div class="col-md-3 mb-3 mt-1"> 
+            {% include 'includes/card.html' %}
+        </div>
+        
+        <div class="col-md-9">
+        <!-- Начало блока с отдельным постом -->
+            {% for post in page %}
+            {% include "includes/post_item.html" with page=page %}
+            <!-- Конец блока с отдельным постом -->
+            {% endfor %}
+            <!-- Остальные посты -->
+            {% include "includes/paginator.html" %}
+        </div>
+        </div>
+    </main>
+{% endblock %}
