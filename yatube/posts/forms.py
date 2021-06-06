@@ -8,8 +8,9 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ('text', 'group', 'image',)
-        labels = {'name': _('Текст'), }
-        help_texts = {'name': _('Введите текст'), }
+        labels = {'text': _('Текст'), }
+        help_texts = {'text': _('Введите текст'),
+                      'image': _('Вставьте картинку'), }
 
 
 class CommentForm(forms.ModelForm):

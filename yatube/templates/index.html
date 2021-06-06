@@ -1,16 +1,15 @@
 {% extends "base.html" %} 
 {% block title %}Последние обновления на сайте{% endblock %}
 {% block content %}
-{% load cache %}
-{% cache 20 sidebar %}
+
   <div class="container">
     <!-- Вывод ленты записей -->
-    {% include "menu.html" with index=True %}
+    {% include "includes/menu.html" with index=True %}
     {% for post in page %}
       {% include "includes/post_item.html" with page=page %}
     {% endfor %}
   </div>
 
   {% include "includes/paginator.html" %}
-{% endcache %} 
+
 {% endblock %}

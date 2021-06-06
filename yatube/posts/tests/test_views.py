@@ -5,11 +5,12 @@ import datetime as dt
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.cache import cache
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from posts.models import Group, Post, Follow
+from posts.models import Group, Post, Comment, Follow
 
 # python manage.py test posts.tests.test_views -v 0
 
@@ -70,6 +71,7 @@ class TemplateTest(TestCase):
         # авторизуем автора поста
         self.author_client = Client()
         self.author_client.force_login(TemplateTest.post.author)
+        cache.clear()
 
     def post_context(self, context, flag_post):
         """Отдельный метод, проверяющий контекс поста"""
@@ -236,26 +238,45 @@ class TemplateTest(TestCase):
 
     def test_authorized_client_can_follow_author(self):
         """
-        Проверяет возможность подписки/отписки на автора зареганым
-        пользователем и невохзможность подписаться на самого себя
+        Проверяет возможность подписки на автора зареганым
+        пользователем и невозможность подписаться на самого себя
         """
         # при подписке создается модель
-        author = TemplateTest.post.author.username
-        self.authorized_client.get(reverse('profile_follow', args={author}))
+        author = TemplateTest.post.author
+        follow_count = Follow.objects.all().count()
+        self.authorized_client.get(reverse('profile_follow',
+                                           args={author.username}))
+        # подписка оформлена
         is_follow = Follow.objects.filter(
             user=self.user, author=TemplateTest.post.author).exists()
         self.assertTrue(is_follow)
-        # при отписке модель стирается
-        self.authorized_client.get(reverse('profile_unfollow', args={author}))
+        # сравниваем объект напрямую
+        following = Follow.objects.last()
+        self.assertEqual(following.author, author)
+        self.assertEqual(following.user, self.user)
+        # Количество подписок увеличилось
+        self.assertTrue(Follow.objects.all().count() == follow_count + 1)
+
+    def test_authorized_client_can_unfollow_author(self):
+        """ Проверяет возможность отписки от автора зареганым пользователем """
+        author = TemplateTest.post.author
+        self.authorized_client.get(reverse('profile_unfollow',
+                                           args={author.username}))
         is_follow = Follow.objects.filter(
             user=self.user, author=TemplateTest.post.author).exists()
         self.assertFalse(is_follow)
-        # пользователь не может подписаться сам на себя
-        self.author_client.get(reverse('profile_follow', args={author}))
+        self.assertEqual(Follow.objects.all().count(), 0)
+
+    def test_author_cant_follow_yourself(self):
+        """ Проверяет, пользователь не может подписаться сам на себя """
+        author = TemplateTest.post.author
+        self.author_client.get(reverse('profile_follow',
+                                       args={author.username}))
         is_follow = Follow.objects.filter(
             user=TemplateTest.post.author,
             author=TemplateTest.post.author).exists()
         self.assertFalse(is_follow)
+        self.assertEqual(Follow.objects.all().count(), 0)
 
     def test_one_following(self):
         """Можно подписаться на пользователя только один раз"""
@@ -270,28 +291,80 @@ class TemplateTest(TestCase):
     def test_posts_for_followers(self):
         """
         Проверяет, что новая запись пользователя появляется в ленте тех,
-        кто на него подписан и не появляется в ленте тех,
-        кто не подписан на него.
+        кто на него подписан
         """
         author = TemplateTest.post.author
+        post = Post.objects.create(text='текст для подписчиков',
+                                   pub_date=dt.datetime.now(),
+                                   author=User.objects.get(id=1),
+                                   group=TemplateTest.group)
         # подписываем первого пользователя на автора
         self.authorized_client.get(reverse('profile_follow',
                                            args={author.username}))
+        # проверям количество постов по подписке
+        response = self.authorized_client.get(reverse('follow_index'))
+        posts_count = len(response.context['page'])
+        self.assertEqual(posts_count, 2)
+        # сравниваем объект напрямую
+        self.assertEqual(response.context['page'][0].text, post.text)
+        # # проверяет, что text=='текст для подписчиков' у последнего
+        # поста :self.assertEqual(response.context['page'][0].text, post.text)
+        today = dt.date.today()
+        self.assertEqual(response.context['page'][0].pub_date.date(), today)
+        self.assertEqual(response.context['page'][0].author, author)
+        self.assertEqual(response.context['page'][0].group, TemplateTest.group)
+
+    def test_posts_for_unfollowers(self):
+        """
+        Проверяет, что новая запись пользователя не появляется в ленте тех,
+        кто не подписан на него.
+        """
         # создаем второго авторизованного пользователя
         self.user2 = User.objects.create_user(username='Рон')
         self.authorized_client2 = Client()
         self.authorized_client2.force_login(self.user2)
-        # проверям количество постов по подписке
-        response1 = self.authorized_client.get(reverse('follow_index'))
-        response2 = self.authorized_client2.get(reverse('follow_index'))
-        posts_count1 = len(response1.context['page'])
-        posts_count2 = len(response2.context['page'])
-        posts_count = {
-            (posts_count1, 1, 'Подписанный пользователь'),
-            (posts_count2, 0, 'Неподписанный пользователь')
-        }
-        for posts, count, user in posts_count:
-            with self.subTest(user=user):
-                self.assertEqual(posts, count)
-        # # проверяет, что text=='текст для подписчиков' у последнего
-        # поста :self.assertEqual(response.context['page'][0].text, post.text)
+        response = self.authorized_client2.get(reverse('follow_index'))
+        posts_count = len(response.context['page'])
+        self.assertEqual(posts_count, 0)
+
+    def test_only_authorized_can_add_comment(self):
+        """Добавить коммент может только авторизованный пользователь"""
+        form_data = {'text': 'Вот это пост!!!'}
+        # комментит неавторизованный пользователь
+        guest_client = Client()
+        guest_client.post(reverse(
+            'add_comment', kwargs={
+                'username': TemplateTest.post.author.username,
+                'post_id': TemplateTest.post.id}),
+            data=form_data,
+            follow=True)
+        comment_guest = Comment.objects.filter(text='Вот это пост!!!').exists()
+        self.assertFalse(comment_guest)
+        # комментит авторизованный пользователь
+        self.authorized_client.post(reverse(
+            'add_comment', kwargs={
+                'username': TemplateTest.post.author.username,
+                'post_id': TemplateTest.post.id}),
+            data=form_data,
+            follow=True)
+        comment_auth = Comment.objects.filter(text='Вот это пост!!!').exists()
+        self.assertTrue(comment_auth)
+
+    def test_home_page_cache(self):
+        """Проверка кеширования главной страницы"""
+        response = self.authorized_client.get(reverse('index'))
+        first_request = response.content
+        # создаем новый пост
+        form_data = {'text': 'пост проверяющий кеш'}
+        self.authorized_client.post(
+            reverse('new_post'),
+            data=form_data,
+            follow=True)
+        response = self.authorized_client.get(reverse('index'))
+        # проверяем, что новый пост не сразу появился на главной странице
+        self.assertEqual(first_request, response.content)
+        cache.clear()
+        # Анатолий, я использовал cache.clear()
+        # вместо time.sleep(20), чтобы не ждать по 20 сек
+        response = self.authorized_client.get(reverse('index'))
+        self.assertNotEqual(first_request, response.content)

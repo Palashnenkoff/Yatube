@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.views.decorators.cache import cache_page
 
 from . models import Post, Group, Follow
 from . forms import PostForm, CommentForm
@@ -14,6 +15,7 @@ User = get_user_model()
 # python manage.py test
 
 
+@cache_page(20)
 def index(request):
     post_list = Post.objects.all()
     # Показывать по 10 записей на странице.
@@ -122,7 +124,6 @@ def add_comment(request, username, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-        return redirect('post', username=username, post_id=post_id)
     return redirect('post', username=username, post_id=post_id)
 
 
@@ -162,10 +163,6 @@ def profile_follow(request, username):
         Follow.objects.create(user=request.user, author=author)
         return redirect('profile', username=username)
     return redirect('profile', username=username)
-    # КАК МОЖНО СДЕЛАТЬ БЕЗ ПОСЛЕДНЕГО РЕДИРЕКТА, ЧТОБЫ ЛИШНИЙ РАЗ
-    # НЕ РЕНДЕРИТЬ СТРАНИЦУ???
-    # КАКОЙ-НИБУДЬ АНАЛОГ break, только для if.
-    # Я кончено убрал в шаблоне кнопку подписки автора в своем профайле,
 
 
 @login_required
@@ -173,5 +170,6 @@ def profile_unfollow(request, username):
     """Отписка от автора"""
     author = get_object_or_404(User, username=username)
     subscription = Follow.objects.filter(user=request.user, author=author)
-    subscription.delete()
+    if subscription.exists():
+        subscription.delete()
     return redirect('profile', username=username)

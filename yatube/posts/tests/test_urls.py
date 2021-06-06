@@ -2,6 +2,7 @@ import datetime as dt
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 from posts.models import Group, Post
 
@@ -126,6 +127,7 @@ class URLTests(TestCase):
 
     def test_url_use_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
+        cache.clear()
         url_templates_name_urls = {
             URLTests.index_url: 'index.html',
             URLTests.group_url: 'group.html',
