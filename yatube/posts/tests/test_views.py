@@ -364,7 +364,6 @@ class TemplateTest(TestCase):
         # проверяем, что новый пост не сразу появился на главной странице
         self.assertEqual(first_request, response.content)
         cache.clear()
-        # Анатолий, я использовал cache.clear()
-        # вместо time.sleep(20), чтобы не ждать по 20 сек
+        # cache.clear() вместо time.sleep(20), чтобы не ждать по 20 сек
         response = self.authorized_client.get(reverse('index'))
         self.assertNotEqual(first_request, response.content)
