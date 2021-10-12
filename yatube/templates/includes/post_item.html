@@ -22,18 +22,17 @@
         </a>
       {% endif %}
   
-      <!-- Отображение ссылки на комментарии -->
+      <!-- Отображение ссылки на комментарии  &nbsp- это пробел-->
       <div class="d-flex justify-content-between align-items-center">
         <div class="btn-group">
           {% if post.comments.exists %}
             <div>
-              Комментариев: {{ post.comments.count }}
+              Комментариев: {{ post.comments.count }} &nbsp
             </div>
           {% endif %}
           <a class="btn btn-sm btn-primary" href="{% url 'add_comment' post.author.username post.id %}" role="button">
             Добавить комментарий
           </a>
-  
           <!-- Ссылка на редактирование поста для автора -->
           {% if user == post.author %}
             <a class="btn btn-sm btn-info" href="{% url 'edit' post.author.username post.id %}" role="button">

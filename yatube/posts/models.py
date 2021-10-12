@@ -16,7 +16,7 @@ class Post(models.Model):
                               related_name='posts',
                               verbose_name='Группа',
                               help_text='Выберите группу')
-# on_delete=models.CASCADE удаляет все посты автора при его удалении группы
+# on_delete=models.CASCADE удаляет все посты автора при его удалении
 # on_delete=models.SET_NULL посты остаются без группы
     image = models.ImageField(
         upload_to='posts/',

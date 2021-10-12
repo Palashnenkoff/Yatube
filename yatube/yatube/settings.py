@@ -23,9 +23,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '@&htcg+%b4dxna*8qmftd!%ggl$&!-g*0!958(_=jknj)b3@p8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
+    "www.PaschaZrazhevski.pythonanywhere.com",
+    "PaschaZrazhevski.pythonanywhere.com",
+    "178.154.194.236",
     "localhost",
     "127.0.0.1",
     "[::1]",
@@ -38,7 +41,7 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     'about',
     'users',
-    'posts',
+    'posts',  # практичнее регистрировать так 'posts.apps.PostsConfig'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sorl.thumbnail',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +60,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # приложения для обработки запросов
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+
+# IP адреса при обращении с которых будет доступен
+# инструмент django-debug-toolbar
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 ROOT_URLCONF = 'yatube.urls'

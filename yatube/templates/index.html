@@ -2,12 +2,17 @@
 {% block title %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
+
   <div class="container">
     <!-- Вывод ленты записей -->
     {% include "includes/menu.html" with index=True %}
+    <!-- Подключаем кеширование только постов на 20 секунд и после menu.html  -->
+    {% load cache %}
+    {% cache 20 sidebar %}
     {% for post in page %}
       {% include "includes/post_item.html" with page=page %}
     {% endfor %}
+    {% endcache %} 
   </div>
 
   {% include "includes/paginator.html" %}

@@ -1,4 +1,3 @@
-
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.urls import include, path
@@ -30,7 +29,9 @@ urlpatterns = [
 # обращаться файлам в директории, указанной в MEDIA_ROOT
 # по имени, через префикс MEDIA_URL.
 if settings.DEBUG:
+    import debug_toolbar
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(
         settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += (path("__debug__/", include(debug_toolbar.urls)),)

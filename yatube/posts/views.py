@@ -2,20 +2,35 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 
 from . models import Post, Group, Follow
 from . forms import PostForm, CommentForm
 
 User = get_user_model()
 
+# git clone ...
+# python -m venv venv
 # source venv/Scripts/activate
+# python -m pip install --upgrade pip
+# pip install Django==2.2.19
+#   нужно выбрать правильную версию Python для виртуального
+#   окружения проекта (https://code.visualstudio.com/docs/python/environments)
+# django-admin startproject имя_проекта (после активации venv)
+# pip freeze > requirements.txt (установка зависимостей)
+# pip install -r requirements.txt (развертывание зависимостей но новой машине)
+# python manage.py startapp ice_cream
+# python manage.py makemigrations -  автоматический процесс обновления базы
+#   данных на основании определённых правил.
+# python manage.py migrate
 # python manage.py runserver
 # python manage.py shell
 # python manage.py test
 
 
-@cache_page(20)
+# @cache_page(20) # таким образм кешируется вся функция и
+# вся странца, луче в шаблоне index закешировать блок с
+# постами, чтобы верхнее меню отображалось онлайн
 def index(request):
     post_list = Post.objects.all()
     # Показывать по 10 записей на странице.
@@ -38,9 +53,9 @@ def group_posts(request, slug):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     # # раньше была запись posts = Post.objects.filter(group=group)[:12]
-    return render(request, "group.html", {
-        "group": group,
-        "page": page,
+    return render(request, 'group.html', {
+        'group': group,
+        'page': page,
     })
 
 
@@ -51,9 +66,9 @@ def new_post(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect("index")
+        return redirect('index')
 
-    return render(request, "new_post.html", {"form": form})
+    return render(request, 'new_post.html', {'form': form})
 
 
 @login_required
@@ -73,13 +88,13 @@ def post_edit(request, username, post_id):
         return render(
             request,
             'new_post.html',
-            {"form": form, "post": post, "is_edit": True},
+            {'form': form, 'post': post, 'is_edit': True},
         )
     return redirect('post', username=post.author.username, post_id=post_id)
 
 
 def profile(request, username):
-    """Отображает страницу пользователя с его постами и информацией"""
+    'Отображает страницу пользователя с его постами и информацией.'
     author = get_object_or_404(User, username=username)
     posts = author.posts.all()
     paginator = Paginator(posts, 10)
@@ -98,7 +113,7 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    """Отображает страницу с отдельным постом и комментариями"""
+    'Отображает страницу с отдельным постом и комментариями.'
     # # Количество постов есть в author через related_name.
     # Смотри 'author.posts.count()' в шаблоне post.html
     # author__username=username - это обращение к полю связанной модели(__)
@@ -114,49 +129,49 @@ def post_view(request, username, post_id):
     })
 
 
-@login_required
 def add_comment(request, username, post_id):
-    """Создание комментария к посту (просто сохраняется в базу)"""
+    'Создание комментария к посту (просто сохраняется в базу).'
     post = get_object_or_404(Post, id=post_id, author__username=username)
-    form = CommentForm(request.POST or None)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = post
-        comment.save()
+    if request.user.is_authenticated:
+        form = CommentForm(request.POST or None)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.post = post
+            comment.save()
     return redirect('post', username=username, post_id=post_id)
 
 
 def page_not_found(request, exception):
-    """Отображает страницу с ошибкой 404"""
+    'Отображает страницу с ошибкой 404.'
     # Переменная exception содержит отладочную информацию,
     # выводить её в шаблон пользователской страницы 404 мы не станем
     return render(
         request,
-        "misc/404.html",
-        {"path": request.path},
+        'misc/404.html',
+        {'path': request.path},
         status=404
     )
 
 
 def server_error(request):
-    """Отображает страницу с ошибкой 500"""
-    return render(request, "misc/500.html", status=500)
+    'Отображает страницу с ошибкой 500.'
+    return render(request, 'misc/500.html', status=500)
 
 
 @login_required
 def follow_index(request):
-    """Выводит посты авторов на которых подписан пользователь"""
+    'Выводит посты авторов на которых подписан пользователь.'
     posts_follow = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(posts_follow, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, "follow.html", {'page': page})
+    return render(request, 'follow.html', {'page': page})
 
 
 @login_required
 def profile_follow(request, username):
-    """Подписка на автора"""
+    'Подписка на автора.'
     author = get_object_or_404(User, username=username)
     follow = Follow.objects.filter(user=request.user, author=author).exists()
     if request.user != author and follow is False:
@@ -167,7 +182,7 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    """Отписка от автора"""
+    'Отписка от автора.'
     author = get_object_or_404(User, username=username)
     subscription = Follow.objects.filter(user=request.user, author=author)
     if subscription.exists():
