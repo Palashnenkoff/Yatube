@@ -6,10 +6,16 @@
         <title>{% block title %}The Last Social Media You'll Ever Need{% endblock %} | Yatube</title>
         <!-- Загрузка статики -->
         {% load static %}
-        <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
+        <!-- <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
         <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
         <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
-        <link rel="icon" type="image/png" sizes="32x32" href="yatube/static/favicon/favicon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="yatube/static/favicon/favicon.png"> -->
+        
+        <!-- ДЛЯ СЕРВЕРА: -->
+        <link rel="stylesheet" 
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
     </head>
     <body>
         {% include 'includes/nav.html' %}

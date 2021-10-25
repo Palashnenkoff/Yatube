@@ -1,3 +1,60 @@
-# hw05_final
+# Социальная сеть Yatube
 
-[![CI](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml)
+**Yatube** - это сервис для публикации личных постов, где любой посетитель может просматривать посты и читать коммаентарии.
+А после регистрации:
+- Создать собственную страницу. Писать посты с картинками и добавлять их в сообщества.
+- Подписываться на любимых авторов. 
+- Комментировать записи.
+- Управлять личным кабинетом (восстановить или сбросить пароль)
+
+
+## Техническое описание
+
+- Python 3.7.0
+- Django 2.2.6
+
+## Для локального запуска проекта выполните следующие дейтсивяЖ
+
+Клонировать репозиторий и перейти в него в командной строке:
+```
+git clone https://github.com/Palashnenkoff/Yatube.git
+```
+```
+cd Yatube
+```
+  
+Cоздать и активировать виртуальное окружение (для Windows):
+
+```
+python -m venv venv
+```
+###### * для Mac или Linux 'python3 -m venv venv'  
+```
+source venv/Scripts/activate 
+```
+###### * для Mac или Linux 'source venv/bin/activate' 
+
+Обновить pip и установить зависимости:
+```
+python -m pip install --upgrade pip
+```
+```
+pip install -r requirements.txt
+```
+Зайти в директорию приложения и выполнить миграции:
+```
+cd yatube/
+```
+```
+python manage.py migrate
+```
+При необходимости создать суперпользователя (login/email/password):
+```
+python manage.py createsuperuser
+```
+Запустить проект:
+```
+python manage.py runserver
+```
+### Проект будет доступеен по адресу http://127.0.0.1:8000/
+### Панель администратора http://127.0.0.1:8000/yatube_admin/

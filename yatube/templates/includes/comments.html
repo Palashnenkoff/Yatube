@@ -1,20 +1,4 @@
 {% load user_filters %}
-
-{% if user.is_authenticated %}
-  <div class="card my-4">
-    <form method="post" action="{% url 'add_comment' author.username post.id %}">
-      {% csrf_token %}
-      <h5 class="card-header">Добавить комментарий:</h5>
-      <div class="card-body">
-        <div class="form-group">
-          {{ form.text|addclass:"form-control" }}
-        </div>
-        <button type="submit" class="btn btn-primary">Отправить</button>
-      </div>
-    </form>
-  </div>
-{% endif %}
-
 <!-- Комментарии -->
 {% for item in comments %}
   <div class="media card mb-4">
@@ -31,3 +15,18 @@
     </div>
   </div>
 {% endfor %}
+
+{% if user.is_authenticated %}
+  <div class="card my-4">
+    <form method="post" action="{% url 'add_comment' author.username post.id %}">
+      {% csrf_token %}
+      <h5 class="card-header">Добавить комментарий:</h5>
+      <div class="card-body">
+        <div class="form-group">
+          {{ form.text|addclass:"form-control" }}
+        </div>
+        <button type="submit" class="btn btn-primary">Отправить</button>
+      </div>
+    </form>
+  </div>
+{% endif %}
