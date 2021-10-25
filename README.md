@@ -25,14 +25,15 @@ cd Yatube
   
 Cоздать и активировать виртуальное окружение (для Windows):
 
+###### * для Mac или Linux 'python3 -m venv venv'  
 ```
 python -m venv venv
 ```
-###### * для Mac или Linux 'python3 -m venv venv'  
+
+###### * для Mac или Linux 'source venv/bin/activate' 
 ```
 source venv/Scripts/activate 
 ```
-###### * для Mac или Linux 'source venv/bin/activate' 
 
 Обновить pip и установить зависимости:
 ```
@@ -53,8 +54,10 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 Запустить проект:
+###### * Для отображения картинок установите в settings.py DEBUG = True 
 ```
 python manage.py runserver
 ```
 ### Проект будет доступеен по адресу http://127.0.0.1:8000/
 ### Панель администратора http://127.0.0.1:8000/yatube_admin/
+### WEB версию проекта вы можете посетить по адресуу https://rammstudy.ga/ 
